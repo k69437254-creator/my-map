@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12343b">
+<title>خريطتي</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root{
+    --ink:#12343b; --mint:#c8e6da; --paper:#ffffff; --signal:#e8590c; --muted:#5b7479;
+    --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:"Tajawal",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color:var(--ink)}
+  #map{position:absolute;inset:0}
+  .bar{position:absolute;z-index:1000;top:calc(var(--safe-top) + 10px);left:10px;right:10px;display:flex;gap:8px}
+  .bar input{flex:1;min-width:0;border:0;border-radius:14px;padding:14px 16px;font:inherit;font-size:16px;background:var(--paper);box-shadow:0 2px 10px rgba(18,52,59,.25);color:var(--ink)}
+  .bar button,.fab{border:0;font:inherit;cursor:pointer}
+  .bar .go{background:var(--ink);color:#fff;border-radius:14px;padding:0 18px;font-weight:700}
+  .fabs{position:absolute;z-index:1000;bottom:calc(var(--safe-bottom) + 18px);left:10px;right:10px;display:flex;justify-content:space-between;gap:10px}
+  .fab{background:var(--paper);color:var(--ink);padding:14px 18px;border-radius:16px;font-weight:700;font-size:15px;box-shadow:0 2px 10px rgba(18,52,59,.3)}
+  .fab.main{background:var(--signal);color:#fff}
+  #panel{position:absolute;z-index:1100;left:0;right:0;bottom:0;max-height:60%;overflow:auto;background:var(--paper);border-radius:20px 20px 0 0;padding:16px 16px calc(var(--safe-bottom) + 16px);box-shadow:0 -4px 20px rgba(0,0,0,.25);transform:translateY(110%);transition:transform .25s}
+  #panel.open{transform:none}
+  #panel h2{margin:0 0 10px;font-size:18px}
+  .item{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--mint)}
+  .item .name{flex:1;font-weight:600}
+  .item button{border:0;background:var(--mint);color:var(--ink);border-radius:10px;padding:8px 12px;font:inherit;cursor:pointer}
+  .item button.del{background:#fde3d6;color:#9a3d08}
+  .empty{color:var(--muted);padding:8px 0}
+  .pop button{margin-top:8px;border:0;background:var(--ink);color:#fff;border-radius:10px;padding:8px 12px;font:inherit;cursor:pointer}
+  .toast{position:absolute;z-index:1200;top:calc(var(--safe-top) + 70px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;display:none}
+  .leaflet-container{font-family:inherit}
+  :focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<form class="bar" id="searchForm">
+  <input id="q" type="search" placeholder="ابحث عن مكان أو عنوان" aria-label="بحث">
+  <button class="go" type="submit">بحث</button>
+</form>
+
+<div class="toast" id="toast"></div>
+
+<div class="fabs">
+  <button class="fab main" id="locate">موقعي</button>
+  <button class="fab" id="showSaved">الأماكن المحفوظة</button>
+</div>
+
+<section id="panel" aria-label="الأماكن المحفوظة">
+  <h2>الأماكن المحفوظة</h2>
+  <div id="list"></div>
+  <button class="fab" id="closePanel" style="margin-top:10px;width:100%">إغلاق</button>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function(){
+  var map = L.map('map',{zoomControl:false}).setView([24.7136,46.6753],11);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19, attribution:'© OpenStreetMap'
+  }).addTo(map);
+
+  var toastEl = document.getElementById('toast'), toastTimer;
+  function toast(msg){
+    toastEl.textContent = msg; toastEl.style.display='block';
+    clearTimeout(toastTimer); toastTimer=setTimeout(function(){toastEl.style.display='none'},2600);
+  }
+
+  var KEY='my-map-places', places=[], markers={};
+  try{ places = JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ places=[]; }
+  function persist(){ try{ localStorage.setItem(KEY,JSON.stringify(places)); }catch(e){} }
+
+  function addMarker(p){
+    var m = L.marker([p.lat,p.lng]).addTo(map).bindPopup('<b>'+esc(p.name)+'</b>');
+    markers[p.id]=m;
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
+  places.forEach(addMarker);
+
+  function renderList(){
+    var el=document.getElementById('list'); el.innerHTML='';
+    if(!places.length){ el.innerHTML='<div class="empty">لا توجد أماكن محفوظة. اضغط على الخريطة ثم «حفظ المكان».</div>'; return; }
+    places.forEach(function(p){
+      var row=document.createElement('div'); row.className='item';
+      row.innerHTML='<span class="name">'+esc(p.name)+'</span><button data-go="'+p.id+'">عرض</button><button class="del" data-del="'+p.id+'">حذف</button>';
+      el.appendChild(row);
+    });
+  }
+  document.getElementById('list').addEventListener('click',function(e){
+    var go=e.target.getAttribute('data-go'), del=e.target.getAttribute('data-del');
+    if(go){ var p=places.filter(function(x){return String(x.id)===go})[0]; if(p){ map.flyTo([p.lat,p.lng],16); panel.classList.remove('open'); markers[p.id].openPopup(); } }
+    if(del){ places=places.filter(function(x){return String(x.id)!==del}); if(markers[del]){map.removeLayer(markers[del]); delete markers[del];} persist(); renderList(); }
+  });
+
+  var panel=document.getElementById('panel');
+  document.getElementById('showSaved').onclick=function(){ renderList(); panel.classList.add('open'); };
+  document.getElementById('closePanel').onclick=function(){ panel.classList.remove('open'); };
+
+  map.on('click',function(e){
+    var html='<div class="pop"><input id="pname" placeholder="اسم المكان" style="width:150px;padding:6px;font:inherit"><br><button id="savePin">حفظ المكان</button></div>';
+    L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
+    setTimeout(function(){
+      var b=document.getElementById('savePin'); if(!b) return;
+      b.onclick=function(){
+        var n=(document.getElementById('pname').value||'').trim()||'مكان بدون اسم';
+        var p={id:Date.now(),name:n,lat:e.latlng.lat,lng:e.latlng.lng};
+        places.push(p); persist(); addMarker(p); map.closePopup(); toast('تم حفظ المكان');
+      };
+    },0);
+  });
+
+  var me;
+  document.getElementById('locate').onclick=function(){
+    if(!navigator.geolocation){ toast('المتصفح لا يدعم تحديد الموقع'); return; }
+    toast('جارٍ تحديد موقعك…');
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var ll=[pos.coords.latitude,pos.coords.longitude];
+      if(me) map.removeLayer(me);
+      me=L.circleMarker(ll,{radius:9,color:'#fff',weight:3,fillColor:'#e8590c',fillOpacity:1}).addTo(map);
+      map.flyTo(ll,16);
+    },function(){ toast('تعذّر تحديد الموقع. فعّل إذن الموقع للمتصفح.'); },{enableHighAccuracy:true,timeout:15000});
+  };
+
+  document.getElementById('searchForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var q=document.getElementById('q').value.trim(); if(!q) return;
+    toast('جارٍ البحث…');
+    fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=ar&q='+encodeURIComponent(q))
+      .then(function(r){return r.json()})
+      .then(function(res){
+        if(!res.length){ toast('لم يتم العثور على نتائج'); return; }
+        var r=res[0], ll=[parseFloat(r.lat),parseFloat(r.lon)];
+        map.flyTo(ll,15);
+        L.popup().setLatLng(ll).setContent('<b>'+esc(r.display_name)+'</b>').openOn(map);
+      })
+      .catch(function(){ toast('تعذّر البحث. تحقق من الاتصال بالإنترنت.'); });
+  });
+})();
+</script>
+</body>
+</html>
