@@ -4,310 +4,176 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#14213D">
-<title>خريطتي</title><link rel="manifest" href="manifest.webmanifest"><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script>
+<title>خريطتي</title>
+<link rel="manifest" href="manifest.webmanifest"><script>if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
 <style>
 :root{--ink:#14213D;--deep:#0B1730;--teal:#13A3A8;--gold:#E3A62B;--bg:#F5F8FA;--line:#DDE5EA;--muted:#5E6E7E;--red:#D64545;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}[hidden]{display:none!important}
-html,body{height:100%;margin:0;font-family:"IBM Plex Sans Arabic",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color:var(--ink);background:var(--bg)}
-button{font:inherit;cursor:pointer;border:0;color:inherit}
-svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-#map{position:absolute;inset:0}
-.leaflet-container{font-family:inherit;background:#e9eef1}
+html,body{height:100%;margin:0;overflow:hidden;font-family:"IBM Plex Sans Arabic",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color:var(--ink);background:var(--bg);-webkit-user-select:none;user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+button{font:inherit;cursor:pointer;border:0;color:inherit;background:none;touch-action:manipulation}
+svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#map{position:absolute;inset:0}.leaflet-container{font-family:inherit;background:#e9eef1}
+.leaflet-popup-content-wrapper{border-radius:16px}.leaflet-popup-content{margin:12px 14px}
+/* splash */
+.splash{position:fixed;inset:0;z-index:5000;background:linear-gradient(180deg,#0B1730 0%,#14213D 48%,#0f6f78 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 24px calc(var(--sb) + 36px);transition:opacity .5s}
+.splash.out{opacity:0;pointer-events:none}
+.ill{position:absolute;top:12%;left:0;right:0;width:100%;max-height:46%}
+.splash h1{font-size:42px;margin:0 0 4px}.splash p{margin:0 0 22px;color:#bfe3e5;font-size:16px;text-align:center}
+.go-big{background:var(--gold);color:var(--ink);font-weight:700;font-size:18px;border-radius:18px;padding:15px 46px;box-shadow:0 8px 22px rgba(227,166,43,.4)}
+@keyframes drive{from{transform:translateX(-70px)}to{transform:translateX(400px)}}.drive{animation:drive 6s linear infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}.bounce{animation:bounce 1.6s ease-in-out infinite}
+@keyframes dashm{to{stroke-dashoffset:-32}}.dash{animation:dashm 1s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-36}}path.flow{stroke-dasharray:4 14;animation:flow 1.1s linear infinite}
+@keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+/* top */
 .top{position:absolute;z-index:1000;top:calc(var(--st) + 10px);left:10px;right:10px}
-.search{display:flex;align-items:center;gap:10px;background:#fff;border-radius:28px;padding:0 18px;height:54px;box-shadow:0 4px 18px rgba(20,33,61,.22)}
-.search svg{color:var(--teal);flex:none}
+.srow{display:flex;gap:10px}
+.search{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:#fff;border-radius:28px;padding:0 16px;height:54px;box-shadow:0 4px 18px rgba(20,33,61,.22)}
+.search svg{color:var(--teal)}
 .search input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:16px;background:transparent;color:var(--ink);height:100%}
 .search input::placeholder{color:#8795a3}
 #qx{background:var(--bg);width:28px;height:28px;border-radius:50%;font-size:16px;line-height:1;color:var(--muted)}
-.chips{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
-.chip{flex:none;background:#fff;border-radius:20px;padding:8px 14px;font-size:14px;font-weight:500;box-shadow:0 2px 10px rgba(20,33,61,.18);border:1.5px solid transparent}
+.rb{width:54px;height:54px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(20,33,61,.25);color:var(--ink);flex:none}
+.chips{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.chip{flex:none;background:#fff;border-radius:20px;padding:9px 15px;font-size:14px;font-weight:500;box-shadow:0 2px 10px rgba(20,33,61,.18)}
 .chip.on{background:var(--ink);color:#fff}
-.rail{position:absolute;z-index:1000;right:10px;top:calc(var(--st) + 136px);display:flex;flex-direction:column;gap:10px}
-body.nav .rail{top:calc(var(--st) + 118px)}body.nav .top{display:none}
-.rb{width:50px;height:50px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 14px rgba(20,33,61,.25);color:var(--ink)}
-.rb.teal{color:var(--teal)}.rb.gold{background:var(--gold)}.rb.off{color:#9aa7b3}
+.fabr{position:absolute;z-index:1000;right:10px;top:calc(var(--st) + 140px)}.fabr .rb{color:var(--teal)}
+body.nav .fabr{top:calc(var(--st) + 120px)}body.nav .top{display:none}
+.speed{position:absolute;z-index:1000;left:10px;top:calc(var(--st) + 140px);width:66px;height:66px;border-radius:50%;background:#fff;border:3px solid var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 3px 14px rgba(20,33,61,.3)}
+body.nav .speed{top:calc(var(--st) + 120px)}.speed b{font-size:22px;line-height:1}.speed small{font-size:10px;color:var(--muted)}
 .banner{position:absolute;z-index:1000;top:calc(var(--st) + 10px);left:10px;right:10px;background:var(--deep);color:#fff;border-radius:20px;padding:12px 14px;display:flex;gap:14px;align-items:center;box-shadow:0 4px 18px rgba(0,0,0,.4)}
 #bArrow{width:54px;height:54px;border-radius:16px;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:32px;flex:none}
 #bText{font-weight:700;font-size:18px;line-height:1.35}#bDist{color:#9fd9db;margin-top:2px;font-size:15px}
-.speed{position:absolute;z-index:1000;left:10px;top:calc(var(--st) + 136px);width:66px;height:66px;border-radius:50%;background:#fff;border:3px solid var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 3px 14px rgba(20,33,61,.3)}
-body.nav .speed{top:calc(var(--st) + 118px)}
-.speed b{font-size:22px;line-height:1}.speed small{font-size:10px;color:var(--muted)}
-.card{position:absolute;z-index:1000;left:10px;right:10px;bottom:calc(var(--sb) + 14px);background:#fff;border-radius:22px;padding:14px;box-shadow:0 6px 24px rgba(20,33,61,.35)}
-.card .t{font-weight:700;font-size:17px;line-height:1.4}.card .s{color:var(--muted);font-size:14px;margin-top:2px}
+/* dock */
+.dock{position:absolute;z-index:1000;left:10px;right:10px;bottom:calc(var(--sb) + 10px);height:66px;background:#fff;border-radius:26px;display:flex;align-items:center;box-shadow:0 6px 24px rgba(20,33,61,.3)}
+body.nav .dock{display:none}
+.dk{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:var(--muted)}
+.dk svg{width:24px;height:24px}.dk.on{color:var(--teal)}
+.dk.fab{flex:none;width:64px;height:64px;border-radius:50%;background:var(--gold);color:var(--ink);transform:translateY(-16px);box-shadow:0 8px 18px rgba(227,166,43,.55);margin:0 4px;font-weight:700}
+/* card */
+.card{position:absolute;z-index:1000;left:10px;right:10px;bottom:calc(var(--sb) + 88px);background:#fff;border-radius:22px;padding:14px;box-shadow:0 6px 24px rgba(20,33,61,.35)}
+body.nav .card{bottom:calc(var(--sb) + 14px)}
+.card .t{font-weight:700;font-size:17px;line-height:1.4}.card .s{color:var(--muted);font-size:14px;margin-top:3px}
 .tabs{display:flex;gap:8px;margin-top:10px}
 .tab{flex:1;background:var(--bg);border-radius:14px;padding:10px 8px;display:flex;flex-direction:column;gap:2px;align-items:center;border:2px solid transparent}
-.tab b{font-size:15px}.tab span{font-size:13px;color:var(--muted)}
-.tab.on{border-color:var(--teal);background:#e7f6f6}.tab.on span{color:var(--ink)}.tab:disabled{opacity:.45}
+.tab b{font-size:15px}.tab span{font-size:13px;color:var(--muted)}.tab.on{border-color:var(--teal);background:#e7f6f6}.tab.on span{color:var(--ink)}.tab:disabled{opacity:.45}
+.alts{display:flex;gap:8px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+.alt{flex:none;background:var(--bg);border-radius:12px;padding:7px 12px;font-size:13px;border:2px solid transparent}.alt.on{border-color:#7b8a99;background:#fff;font-weight:700}
+.warn{margin-top:8px;background:#fff4e0;color:#8a5a00;border-radius:12px;padding:8px 12px;font-size:13px}
 .row{display:flex;gap:8px;align-items:center;margin-top:12px}
-.btn{border-radius:14px;padding:12px 16px;font-weight:700;font-size:15px}
-.btn.go{background:var(--teal);color:#fff;flex:1}.btn.alt{background:#e7f6f6;color:#0b6d71}.btn.red{background:#fde8e8;color:#a52d2d}.btn.ghost{background:transparent;color:var(--muted)}
-.sheet{position:absolute;z-index:1100;left:0;right:0;bottom:0;max-height:72%;overflow:auto;background:#fff;border-radius:26px 26px 0 0;padding:10px 16px calc(var(--sb) + 16px);box-shadow:0 -6px 28px rgba(0,0,0,.28);transform:translateY(110%);transition:transform .25s}
-.sheet.open{transform:none}
-.sheet:before{content:"";display:block;width:42px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 12px}
-.sheet h2{margin:0 0 4px;font-size:19px}.sheet h3{margin:14px 0 8px;font-size:14px;color:var(--muted);font-weight:500}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.rg{background:var(--bg);border-radius:16px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:500;font-size:15px}
-.rg i{font-style:normal;font-size:26px}
+.btn{border-radius:14px;padding:12px 16px;font-weight:700;font-size:15px;min-height:46px}
+.btn.go{background:var(--teal);color:#fff;flex:1}.btn.alt2{background:#e7f6f6;color:#0b6d71}.btn.red{background:#fde8e8;color:#a52d2d}.btn.ghost{color:var(--muted)}.btn.gold{background:var(--gold);color:var(--ink);flex:1}
+/* sheets */
+.bd{position:absolute;inset:0;z-index:1090;background:rgba(11,23,48,.45)}
+.sheet{position:absolute;z-index:1100;left:0;right:0;bottom:0;max-height:82%;overflow:auto;background:#fff;border-radius:26px 26px 0 0;padding:10px 16px calc(var(--sb) + 18px);box-shadow:0 -6px 28px rgba(0,0,0,.28);transform:translateY(110%);transition:transform .25s;visibility:hidden}
+.sheet.open{transform:none;visibility:visible}
+.sheet:before{content:"";display:block;width:42px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 10px}
+.sh{display:flex;align-items:center;justify-content:space-between}.sh h2{margin:0;font-size:19px}
+.x{width:36px;height:36px;border-radius:50%;background:var(--bg);font-size:20px;line-height:1;color:var(--muted)}
+.sheet h3{margin:14px 0 8px;font-size:14px;color:var(--muted);font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{background:var(--bg);border-radius:18px;padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:7px;font-weight:500;font-size:13px;text-align:center}
+.tile i{font-style:normal;font-size:24px;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.lgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.lc{background:var(--bg);border-radius:18px;padding:8px;text-align:right;border:2px solid transparent}.lc.on{border-color:var(--teal);background:#e7f6f6}
+.lc b{display:block;font-size:15px}.lc small{color:var(--muted);font-size:12px}
+.th{width:100%;height:64px;border-radius:12px;display:block;margin-bottom:6px;border:1px solid var(--line)}
+.th-street{background:linear-gradient(135deg,#eef1ea 0 40%,#fff 40% 46%,#cfe5d6 46%)}
+.th-sat{background:linear-gradient(135deg,#2f4a2d,#56733f 50%,#8a7a52)}
+.th-hybrid{background:linear-gradient(135deg,#2f4a2d,#56733f 50%,#8a7a52);box-shadow:inset 0 0 0 4px rgba(255,255,255,.4)}
+.th-terrain{background:linear-gradient(135deg,#d9c9a0,#a9c58a 55%,#7aa07a)}.th-dark{background:linear-gradient(135deg,#0B1730,#1d3557)}
 .fc{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.fc button{background:var(--bg);border-radius:18px;padding:8px 13px;font-size:14px;border:1.5px solid transparent;display:flex;align-items:center;gap:6px}
+.fc button{background:var(--bg);border-radius:18px;padding:9px 14px;font-size:14px;border:1.5px solid transparent;display:flex;align-items:center;gap:6px}
 .fc button.on{border-color:var(--ink);background:#fff;font-weight:700}
-.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
 .item{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
-.item .nm{flex:1;min-width:0}.item .nm b{display:block;font-weight:500}.item .nm small{color:var(--muted);font-size:12px}
-.item button{background:#e7f6f6;color:#0b6d71;border-radius:12px;padding:8px 12px;font-size:14px}.item button.del{background:#fde8e8;color:#a52d2d}
-.empty{color:var(--muted);padding:12px 0}
-.field{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;font:inherit;font-size:16px;margin-top:10px;background:#fff;color:var(--ink)}
-.pop{min-width:160px}.pop b{font-weight:700}.pop button{margin-top:8px;margin-left:6px;background:var(--teal);color:#fff;border-radius:10px;padding:8px 12px;font-size:14px}.pop button.s{background:#e7f6f6;color:#0b6d71}.pop button.r{background:#fde8e8;color:#a52d2d}
-.mk{width:34px;height:34px;border-radius:50%;background:#fff;border:2.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.item .nm{flex:1;min-width:0}.item .nm b{display:block;font-weight:500;line-height:1.4}.item .nm small{color:var(--muted);font-size:12px}
+.item .em{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;flex:none}
+.sm{background:#e7f6f6;color:#0b6d71;border-radius:12px;padding:9px 13px;font-size:14px;flex:none}.sm.del{background:#fde8e8;color:#a52d2d}
+.empty{text-align:center;color:var(--muted);padding:18px 0}.empty svg{width:70px;height:70px;stroke:#b9c6cf;margin-bottom:6px}
+.field{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;font:inherit;font-size:16px;margin-top:8px;background:#fff;color:var(--ink)}
+textarea.field{min-height:84px;resize:none}
+.sv{display:inline-block;color:#fff;border-radius:8px;padding:1px 8px;font-size:12px;margin-right:4px}
+.pop{min-width:170px}.pop b{font-weight:700}.pop small{color:var(--muted)}.pop p{margin:6px 0 0;font-size:14px}
+.pop button{margin:8px 0 0 6px;background:var(--teal);color:#fff;border-radius:10px;padding:9px 12px;font-size:14px}.pop button.s{background:#e7f6f6;color:#0b6d71}.pop button.r{background:#fde8e8;color:#a52d2d}
+.mk{width:36px;height:36px;border-radius:50%;background:#fff;border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 .pin{width:22px;height:22px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.4)}
-.toast{position:absolute;z-index:1300;top:calc(var(--st) + 12px);left:50%;transform:translateX(-50%);background:var(--deep);color:#fff;padding:11px 18px;border-radius:14px;font-size:14px;max-width:92%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.35)}
+.car{position:relative;width:44px;height:44px}.car svg{width:44px;height:44px;transition:transform .4s;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45))}
+.pulse{position:absolute;inset:4px;border-radius:50%;background:rgba(19,163,168,.35);animation:pulse 2s ease-out infinite}
+.set label.r{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--line);font-size:15px}
+.set input[type=range]{width:55%;accent-color:#13A3A8}.set select{max-width:58%;border:1.5px solid var(--line);border-radius:10px;padding:8px;font:inherit;background:#fff}
+.set input[type=checkbox]{width:44px;height:26px;accent-color:#13A3A8}.hint{background:#fff4e0;color:#8a5a00;border-radius:12px;padding:10px 12px;font-size:13px;margin-top:8px}
+.toast{position:absolute;z-index:1300;top:calc(var(--st) + 132px);left:50%;transform:translateX(-50%);background:var(--deep);color:#fff;padding:11px 18px;border-radius:14px;font-size:14px;max-width:92%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.35)}
+body.nav .toast{top:calc(var(--st) + 100px)}
+.cf{position:fixed;top:-20px;width:9px;height:14px;z-index:4000;animation:fall 2.8s linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.9}}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 </style>
 </head>
 <body>
+
+<div class="splash" id="splash">
+<svg class="ill" viewBox="0 0 360 240" aria-hidden="true">
+<circle cx="296" cy="46" r="22" fill="#E3A62B" opacity=".92"/>
+<g fill="#10294d"><rect x="10" y="110" width="40" height="92"/><rect x="58" y="78" width="34" height="124"/><rect x="100" y="126" width="44" height="76"/><rect x="152" y="66" width="38" height="136"/><rect x="198" y="104" width="46" height="98"/><rect x="252" y="90" width="36" height="112"/><rect x="296" y="120" width="50" height="82"/></g>
+<g fill="#E3A62B" opacity=".85"><rect x="18" y="122" width="7" height="9"/><rect x="34" y="140" width="7" height="9"/><rect x="66" y="92" width="7" height="9"/><rect x="78" y="116" width="7" height="9"/><rect x="108" y="140" width="7" height="9"/><rect x="160" y="84" width="7" height="9"/><rect x="174" y="112" width="7" height="9"/><rect x="206" y="120" width="7" height="9"/><rect x="224" y="146" width="7" height="9"/><rect x="260" y="106" width="7" height="9"/><rect x="304" y="136" width="7" height="9"/></g>
+<rect x="0" y="200" width="360" height="40" fill="#0B1730"/>
+<line x1="0" y1="221" x2="360" y2="221" stroke="#fff" stroke-width="3" stroke-dasharray="18 14" class="dash"/>
+<g class="drive"><rect x="0" y="198" width="46" height="16" rx="6" fill="#13A3A8"/><rect x="10" y="189" width="24" height="12" rx="5" fill="#9fd9db"/><circle cx="11" cy="215" r="6" fill="#fff"/><circle cx="35" cy="215" r="6" fill="#fff"/></g>
+<g class="bounce"><path d="M180 22c-14 0-24 10-24 23 0 17 24 38 24 38s24-21 24-38c0-13-10-23-24-23z" fill="#E3A62B"/><circle cx="180" cy="45" r="9" fill="#fff"/></g>
+</svg>
+<h1>خريطتي</h1><p>رفيقك الذكي في كل طريق</p>
+<button class="go-big" id="sBtn">ابدأ الرحلة</button>
+</div>
+
 <div id="map"></div>
 
-<div class="top" id="top">
-  <form class="search" id="searchForm">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
-    <input id="q" type="search" placeholder="إلى أين تريد الذهاب؟" enterkeyhint="search" aria-label="بحث">
-    <button type="button" id="qx" aria-label="مسح" hidden>×</button>
-  </form>
-  <div class="chips">
-    <button class="chip" data-poi="hospital">🏥 مستشفيات</button>
-    <button class="chip" data-poi="police">🚓 مراكز الشرطة</button>
-  </div>
+<div class="top">
+<div class="srow">
+<form class="search" id="searchForm" autocomplete="off">
+<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+<input id="q" type="search" placeholder="إلى أين تريد الذهاب؟" enterkeyhint="search" aria-label="بحث">
+<button type="button" id="qx" aria-label="مسح" hidden>×</button>
+</form>
+<button class="rb" id="layersBtn" aria-label="نمط الخريطة"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>
+</div>
+<div class="chips">
+<button class="chip" data-poi="hospital">🏥 مستشفيات</button>
+<button class="chip" data-poi="police">🚓 مراكز الشرطة</button>
+</div>
 </div>
 
 <div class="banner" id="banner" hidden><div id="bArrow">↑</div><div><div id="bText"></div><div id="bDist"></div></div></div>
-
-<div class="rail">
-  <button class="rb teal" id="locate" aria-label="موقعي"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
-  <button class="rb gold" id="report" aria-label="إبلاغ"><svg viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg></button>
-  <button class="rb" id="favs" aria-label="المفضلة"><svg viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.8-8 11-8 11z"/></svg></button>
-  <button class="rb" id="voice" aria-label="الصوت"><svg viewBox="0 0 24 24" id="vIcon"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></svg></button>
-</div>
-
+<div class="fabr"><button class="rb" id="locate" aria-label="موقعي"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button></div>
 <div class="speed" id="speed" hidden><b id="spd">٠</b><small>كم/س</small></div>
 <div class="card" id="card" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
-<section class="sheet" id="rsheet" aria-label="إبلاغ">
-  <h2>إبلاغ عن شيء في الطريق</h2>
-  <h3>حوادث وازدحام</h3><div class="grid" id="rg1"></div>
-  <h3>حفر ومطبات وأخطار</h3><div class="grid" id="rg2"></div>
-  <div class="row"><button class="btn alt" id="rclose" style="flex:1">إلغاء</button></div>
-</section>
+<nav class="dock">
+<button class="dk" id="dkFavs"><svg viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.8-8 11-8 11z"/></svg>أماكني</button>
+<button class="dk" id="dkReps"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.5M3 12h.5M3 18h.5"/></svg>البلاغات</button>
+<button class="dk fab" id="dkReport" aria-label="إبلاغ"><svg viewBox="0 0 24 24" style="width:30px;height:30px"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg></button>
+<button class="dk" id="dkVoice"><svg viewBox="0 0 24 24" id="vIc"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></svg><span id="vLb">الصوت</span></button>
+<button class="dk" id="dkSet"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3h0a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5h0a1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8v0a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>الإعدادات</button>
+</nav>
 
-<section class="sheet" id="fsheet" aria-label="المفضلة">
-  <h2>أماكني المفضلة</h2>
-  <div class="row" style="margin-top:6px"><button class="btn alt" id="fhere" style="flex:1">♡ حفظ موقعي الحالي</button></div>
-  <div class="fc" id="ffilter"></div>
-  <div id="flist"></div>
-  <div class="row"><button class="btn ghost" id="fclose" style="flex:1">إغلاق</button></div>
-</section>
+<div class="bd" id="bd" hidden></div>
 
-<section class="sheet" id="asheet" aria-label="حفظ مكان">
-  <h2>حفظ في المفضلة</h2>
-  <input class="field" id="aname" placeholder="اسم المكان" maxlength="60">
-  <h3>الفئة</h3><div class="fc" id="acats"></div>
-  <div class="row"><button class="btn go" id="asave">حفظ</button><button class="btn ghost" id="aclose">إلغاء</button></div>
-</section>
+<section class="sheet" id="sResults"><div class="sh"><h2>نتائج البحث</h2><button class="x" data-close>×</button></div><div id="rBody"></div></section>
+<section class="sheet" id="sLayers"><div class="sh"><h2>نمط الخريطة</h2><button class="x" data-close>×</button></div><div id="lBody"></div></section>
+<section class="sheet" id="sReport"><div class="sh"><h2 id="rpTitle">إبلاغ</h2><button class="x" data-close>×</button></div><div id="rpBody"></div></section>
+<section class="sheet" id="sReports"><div class="sh"><h2>البلاغات القريبة</h2><button class="x" data-close>×</button></div><div id="rlBody"></div></section>
+<section class="sheet" id="sFavs"><div class="sh"><h2>أماكني المفضلة</h2><button class="x" data-close>×</button></div>
+<div class="row"><button class="btn alt2" id="fhere" style="flex:1">♡ حفظ موقعي الحالي</button></div><div class="fc" id="ffilter"></div><div id="flist"></div></section>
+<section class="sheet" id="sAdd"><div class="sh"><h2>حفظ في المفضلة</h2><button class="x" data-close>×</button></div>
+<input class="field" id="aname" placeholder="اسم المكان" maxlength="60"><h3>الفئة</h3><div class="fc" id="acats"></div>
+<div class="row"><button class="btn go" id="asave">حفظ</button><button class="btn ghost" data-close>إلغاء</button></div></section>
+<section class="sheet" id="sSet"><div class="sh"><h2>الإعدادات</h2><button class="x" data-close>×</button></div><div class="set" id="setBody"></div></section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script>
-(function(){
-var $=function(i){return document.getElementById(i)};
-var map=L.map('map',{zoomControl:false}).setView([24.7136,46.6753],11);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-var S={pos:null,last:null,watch:null,dest:null,routes:{car:null,foot:null},mode:'car',route:null,coords:[],steps:[],next:1,nav:false,voice:true,ann:{},alerted:{},reroute:0,follow:true,fly:false,wake:null,line:null,dm:null,me:null,busy:false,warned:false,addLL:null,addCat:'other',ffil:'all',poi:{hospital:false,police:false},poiTok:0};
-
-/* ---------- helpers ---------- */
-function num(x){return String(x).replace(/\d/g,function(d){return'٠١٢٣٤٥٦٧٨٩'[d]}).replace('.','٫')}
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-var tt;function toast(m){var t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(function(){t.hidden=true},3200)}
-function hav(a,b){var R=6371000,r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dg/2)*Math.sin(dg/2);return 2*R*Math.asin(Math.sqrt(x))}
-function fd(m){return m>=1000?num((m/1000).toFixed(1))+' كم':num(Math.round(m))+' م'}
-function vd(m){return m>=1000?(m/1000).toFixed(1)+' كيلومتر':Math.max(50,Math.round(m/50)*50)+' متر'}
-function ft(s){var m=Math.max(1,Math.round(s/60));return m<60?num(m)+' د':num(Math.floor(m/60))+' س '+num(m%60)+' د'}
-function eta(s){return new Date(Date.now()+s*1000).toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'})}
-function store(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return[]}}
-function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function sheet(id,open){$(id).classList[open?'add':'remove']('open')}
-
-/* ---------- voice (Arabic) ---------- */
-function arVoice(){if(!window.speechSynthesis)return null;var v=speechSynthesis.getVoices().filter(function(x){return/^ar/i.test(x.lang)});return v[0]||null}
-if(window.speechSynthesis){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=function(){speechSynthesis.getVoices()}}
-function speak(x,force){if((!S.voice&&!force)||!window.speechSynthesis)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(x);u.lang='ar-SA';var v=arVoice();if(v)u.voice=v;else if(!S.warned){S.warned=true;toast('لم أجد صوتًا عربيًا في جوالك. ثبّته من إعدادات «تحويل النص إلى كلام»')}speechSynthesis.speak(u)}catch(e){}}
-var VON='<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/>',VOFF='<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/>';
-$('voice').onclick=function(){S.voice=!S.voice;$('vIcon').innerHTML=S.voice?VON:VOFF;$('voice').classList.toggle('off',!S.voice);
-if(S.voice)speak('تم تشغيل الصوت');else{if(window.speechSynthesis)speechSynthesis.cancel();toast('تم كتم الصوت')}};
-
-/* ---------- favorites + categories ---------- */
-var CATS={home:['المنزل','#13A3A8'],work:['العمل','#14213D'],food:['مطاعم ومقاهي','#E3A62B'],shop:['تسوق','#8E5BD8'],family:['العائلة والأصدقاء','#D6537A'],other:['أخرى','#5E6E7E']};
-var places=store('my-map-places'),pm={};
-places.forEach(function(p){if(!CATS[p.cat])p.cat='other'});
-function addPlaceMarker(p){var ic=L.divIcon({html:'<div class="pin" style="background:'+CATS[p.cat][1]+'"></div>',className:'',iconSize:[22,22],iconAnchor:[6,22]});
-var box=document.createElement('div');box.className='pop';box.innerHTML='<b>'+esc(p.name)+'</b><br><small>'+CATS[p.cat][0]+'</small><br><button>اذهب إلى هنا</button>';
-box.querySelector('button').onclick=function(){map.closePopup();setDest([p.lat,p.lng],p.name)};
-pm[p.id]=L.marker([p.lat,p.lng],{icon:ic}).addTo(map).bindPopup(box)}
-places.forEach(addPlaceMarker);
-function chipsHTML(sel,all){var h=all?'<button data-c="all" class="'+(sel==='all'?'on':'')+'">الكل</button>':'';Object.keys(CATS).forEach(function(k){h+='<button data-c="'+k+'" class="'+(sel===k?'on':'')+'"><span class="dot" style="background:'+CATS[k][1]+'"></span>'+CATS[k][0]+'</button>'});return h}
-function renderFavs(){$('ffilter').innerHTML=chipsHTML(S.ffil,true);var el=$('flist');el.innerHTML='';
-var arr=places.filter(function(p){return S.ffil==='all'||p.cat===S.ffil});
-if(!arr.length){el.innerHTML='<div class="empty">لا توجد أماكن هنا. اضغط على الخريطة ثم «حفظ»، أو احفظ موقعك الحالي.</div>';return}
-arr.forEach(function(p){var r=document.createElement('div');r.className='item';
-r.innerHTML='<span class="dot" style="background:'+CATS[p.cat][1]+'"></span><span class="nm"><b>'+esc(p.name)+'</b><small>'+CATS[p.cat][0]+'</small></span><button data-go="'+p.id+'">اذهب</button><button class="del" data-del="'+p.id+'">حذف</button>';el.appendChild(r)})}
-$('ffilter').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;S.ffil=b.getAttribute('data-c');renderFavs()});
-$('flist').addEventListener('click',function(e){var g=e.target.getAttribute('data-go'),d=e.target.getAttribute('data-del');
-if(g){var p=places.filter(function(x){return String(x.id)===g})[0];if(p){sheet('fsheet',false);setDest([p.lat,p.lng],p.name)}}
-if(d){places=places.filter(function(x){return String(x.id)!==d});if(pm[d]){map.removeLayer(pm[d]);delete pm[d]}save('my-map-places',places);renderFavs()}});
-$('favs').onclick=function(){renderFavs();sheet('fsheet',true)};
-$('fclose').onclick=function(){sheet('fsheet',false)};
-$('fhere').onclick=function(){if(!S.pos){startWatch();toast('جارٍ تحديد موقعك… حاول بعد لحظات');return}sheet('fsheet',false);openAdd(S.pos,'موقعي')};
-function openAdd(ll,name){S.addLL=ll;S.addCat='other';$('aname').value=name||'';$('acats').innerHTML=chipsHTML('other',false);sheet('asheet',true)}
-$('acats').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;S.addCat=b.getAttribute('data-c');$('acats').innerHTML=chipsHTML(S.addCat,false)});
-$('aclose').onclick=function(){sheet('asheet',false)};
-$('asave').onclick=function(){var p={id:Date.now(),name:$('aname').value.trim()||'مكان بدون اسم',lat:S.addLL[0],lng:S.addLL[1],cat:S.addCat};
-places.push(p);save('my-map-places',places);addPlaceMarker(p);sheet('asheet',false);toast('تم الحفظ في «'+CATS[p.cat][0]+'»')};
-
-/* ---------- reports (accidents, potholes, bumps) ---------- */
-var RT={accident:['حادث','🚗'],traffic:['ازدحام','🚦'],radar:['رادار','📷'],closed:['طريق مغلق','⛔'],pothole:['حفرة في الطريق','🕳️'],bump:['مطب غير آمن','⚠️'],works:['أعمال طريق','🚧'],hazard:['خطر آخر','❗']};
-var G1=['accident','traffic','radar','closed'],G2=['pothole','bump','works','hazard'];
-function fillGrid(id,keys){keys.forEach(function(k){var b=document.createElement('button');b.className='rg';b.setAttribute('data-t',k);b.innerHTML='<i>'+RT[k][1]+'</i>'+RT[k][0];$(id).appendChild(b)})}
-fillGrid('rg1',G1);fillGrid('rg2',G2);
-var reps=store('my-map-reports').filter(function(r){return RT[r.type]}),rm={};
-function addRep(r){var ic=L.divIcon({html:'<div class="mk">'+RT[r.type][1]+'</div>',className:'',iconSize:[34,34]});
-var box=document.createElement('div');box.className='pop';box.innerHTML='<b>'+RT[r.type][0]+'</b><br><small>'+new Date(r.time).toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'})+'</small><br><button class="r">حذف البلاغ</button>';
-box.querySelector('button').onclick=function(){reps=reps.filter(function(x){return x.id!==r.id});save('my-map-reports',reps);map.removeLayer(rm[r.id]);delete rm[r.id]};
-rm[r.id]=L.marker([r.lat,r.lng],{icon:ic}).addTo(map).bindPopup(box)}
-reps.forEach(addRep);
-$('report').onclick=function(){sheet('rsheet',true)};
-$('rclose').onclick=function(){sheet('rsheet',false)};
-$('rsheet').addEventListener('click',function(e){var b=e.target.closest('[data-t]');if(!b)return;var t=b.getAttribute('data-t');
-var ll=S.pos||[map.getCenter().lat,map.getCenter().lng];if(!S.pos)toast('تم وضع البلاغ في وسط الخريطة');else toast('تم تسجيل البلاغ: '+RT[t][0]);
-var r={id:Date.now(),type:t,lat:ll[0],lng:ll[1],time:Date.now()};reps.push(r);save('my-map-reports',reps);addRep(r);sheet('rsheet',false)});
-
-/* ---------- hospitals + police ---------- */
-var poiLayer=L.layerGroup().addTo(map),poiTimer;
-var PT={hospital:['مستشفى','🏥','#D64545'],police:['مركز شرطة','🚓','#2B5FD6']};
-function loadPoi(){var types=Object.keys(S.poi).filter(function(k){return S.poi[k]});
-if(!types.length){poiLayer.clearLayers();return}
-if(map.getZoom()<12){toast('قرّب الخريطة أكثر لعرض الخدمات');return}
-var b=map.getBounds(),bb=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].join(',');
-var q='[out:json][timeout:25];('+types.map(function(t){return'nwr["amenity"="'+t+'"]('+bb+');'}).join('')+');out center 80;',tok=++S.poiTok;
-fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q)).then(function(r){return r.json()}).then(function(d){
-if(tok!==S.poiTok)return;poiLayer.clearLayers();var n=0;
-d.elements.forEach(function(el){var ll=el.lat?[el.lat,el.lon]:(el.center?[el.center.lat,el.center.lon]:null);if(!ll)return;
-var ty=el.tags&&el.tags.amenity;if(!PT[ty])return;n++;var nm=(el.tags['name:ar']||el.tags.name||PT[ty][0]);
-var ic=L.divIcon({html:'<div class="mk" style="border-color:'+PT[ty][2]+'">'+PT[ty][1]+'</div>',className:'',iconSize:[34,34]});
-var box=document.createElement('div');box.className='pop';box.innerHTML='<b>'+esc(nm)+'</b><br><small>'+PT[ty][0]+'</small><br><button>اذهب إلى هنا</button>';
-box.querySelector('button').onclick=function(){map.closePopup();setDest(ll,nm)};
-L.marker(ll,{icon:ic}).addTo(poiLayer).bindPopup(box)});
-if(!n)toast('لا توجد نتائج في هذه المنطقة. جرّب تحريك الخريطة.')}).catch(function(){toast('تعذّر تحميل الخدمات. تحقق من الاتصال.')})}
-document.querySelectorAll('[data-poi]').forEach(function(c){c.onclick=function(){var k=c.getAttribute('data-poi');S.poi[k]=!S.poi[k];c.classList.toggle('on',S.poi[k]);loadPoi()}});
-map.on('moveend',function(){if(S.poi.hospital||S.poi.police){clearTimeout(poiTimer);poiTimer=setTimeout(loadPoi,900)}});
-
-/* ---------- location + speed ---------- */
-function startWatch(){if(S.watch!==null)return;if(!navigator.geolocation){toast('المتصفح لا يدعم تحديد الموقع');return}
-S.watch=navigator.geolocation.watchPosition(onPos,function(){toast('تعذّر تحديد الموقع. فعّل إذن الموقع للمتصفح.')},{enableHighAccuracy:true,maximumAge:1000,timeout:20000})}
-function onPos(p){var ll=[p.coords.latitude,p.coords.longitude],now=Date.now(),k=null;
-if(typeof p.coords.speed==='number'&&!isNaN(p.coords.speed))k=p.coords.speed*3.6;
-else if(S.last){var dt=(now-S.last.t)/1000;if(dt>0.5)k=hav(S.last.ll,ll)/dt*3.6}
-S.last={ll:ll,t:now};S.pos=ll;if(k!==null)$('spd').textContent=num(Math.round(k<3?0:k));$('speed').hidden=false;
-if(S.me)S.me.setLatLng(ll);else S.me=L.circleMarker(ll,{radius:9,color:'#fff',weight:3,fillColor:'#13A3A8',fillOpacity:1}).addTo(map);
-if(S.fly){S.fly=false;map.flyTo(ll,16)}if(S.nav)navTick()}
-$('locate').onclick=function(){S.follow=true;startWatch();if(S.pos)map.flyTo(S.pos,S.nav?17:16);else{S.fly=true;toast('جارٍ تحديد موقعك…')}};
-map.on('dragstart',function(){S.follow=false});
-
-/* ---------- destination + routes (car / walking) ---------- */
-function setDest(ll,name){if(S.nav)return;clearRoute();S.dest={ll:ll,name:name||'الوجهة'};S.dm=L.marker(ll).addTo(map);map.flyTo(ll,15);card('dest')}
-function clearRoute(){if(S.line){map.removeLayer(S.line);S.line=null}if(S.dm){map.removeLayer(S.dm);S.dm=null}S.route=null;S.routes={car:null,foot:null};S.coords=[];S.steps=[]}
-function fetchRoute(base,a,b){return fetch(base+a[1]+','+a[0]+';'+b[1]+','+b[0]+'?overview=full&geometries=geojson&steps=true').then(function(r){return r.json()}).then(function(d){if(d.code!=='Ok'||!d.routes.length)throw new Error('x');return d.routes[0]})}
-function getRoute(a,b,mode){if(mode==='foot')return fetchRoute('https://routing.openstreetmap.de/routed-foot/route/v1/driving/',a,b);
-return fetchRoute('https://routing.openstreetmap.de/routed-car/route/v1/driving/',a,b).catch(function(){return fetchRoute('https://router.project-osrm.org/route/v1/driving/',a,b)})}
-function applyRoute(r,fit){S.route=r;S.coords=r.geometry.coordinates.map(function(c){return[c[1],c[0]]});S.steps=r.legs[0].steps;S.next=1;S.ann={};
-if(S.line)map.removeLayer(S.line);var d=S.mode==='foot'?'1 10':null;
-S.line=L.layerGroup([L.polyline(S.coords,{color:'#fff',weight:11,opacity:.95}),L.polyline(S.coords,{color:'#13A3A8',weight:6,dashArray:d,lineCap:'round'})]).addTo(map);
-if(fit)map.fitBounds(L.polyline(S.coords).getBounds(),{padding:[50,50]})}
-function requestRoute(){if(!S.dest||S.busy)return;if(!S.pos){startWatch();S.fly=false;toast('جارٍ تحديد موقعك أولاً… اضغط «عرض المسار» بعد لحظات');return}
-S.busy=true;toast('جارٍ حساب المسار…');
-Promise.all([getRoute(S.pos,S.dest.ll,'car').catch(function(){return null}),getRoute(S.pos,S.dest.ll,'foot').catch(function(){return null})]).then(function(rs){
-S.busy=false;if(!rs[0]&&!rs[1]){toast('تعذّر حساب المسار. تحقق من الاتصال.');return}
-S.routes={car:rs[0],foot:rs[1]};S.mode=rs[0]?'car':'foot';applyRoute(S.routes[S.mode],true);card('route')})}
-
-/* ---------- Arabic instructions ---------- */
-var DIR={'left':'يسارًا','right':'يمينًا','slight left':'قليلًا يسارًا','slight right':'قليلًا يمينًا','sharp left':'بحدة يسارًا','sharp right':'بحدة يمينًا'};
-var ARW={'left':'↰','right':'↱','slight left':'↖','slight right':'↗','sharp left':'↰','sharp right':'↱','straight':'↑','uturn':'↶'};
-function nm(s){var n=s.name||s.ref;return n?' إلى '+n:''}
-function instr(s){var m=s.maneuver,t=m.type,d=m.modifier;
-if(t==='arrive')return'وصلت إلى وجهتك';
-if(t==='depart')return'انطلق'+(s.name?' على '+s.name:'');
-if(d==='uturn')return'استدر للخلف';
-if(t==='roundabout'||t==='rotary'||t==='roundabout turn'||t==='exit roundabout'||t==='exit rotary')return'ادخل الدوار'+(m.exit?' وخذ المخرج رقم '+m.exit:'');
-if(t==='fork')return'عند التفرع خذ '+(d&&d.indexOf('left')>-1?'اليسار':'اليمين');
-if(t==='merge')return'اندمج مع الطريق'+nm(s);
-if(t==='on ramp'||t==='off ramp')return'اسلك المنحدر '+(DIR[d]||'للأمام');
-if(!d||d==='straight'||t==='continue')return'تابع للأمام'+nm(s);
-return'انعطف '+(DIR[d]||'')+nm(s)}
-function arrow(s){var m=s.maneuver;if(m.type==='arrive')return'⚑';if(m.type.indexOf('round')>-1||m.type==='rotary')return'⟳';return ARW[m.modifier]||'↑'}
-function loc(i){var c=S.steps[i].maneuver.location;return[c[1],c[0]]}
-
-/* ---------- cards ---------- */
-function tabHTML(m,label){var r=S.routes[m];return'<button class="tab'+(S.mode===m?' on':'')+'" data-m="'+m+'"'+(r?'':' disabled')+'><b>'+label+'</b><span>'+(r?ft(r.duration)+' · '+fd(r.distance):'غير متاح')+'</span></button>'}
-function cancelDest(){clearRoute();S.dest=null;card(null)}
-function card(mode){var c=$('card');if(!mode){c.hidden=true;return}c.hidden=false;
-if(mode==='dest'){c.innerHTML='<div class="t">'+esc(S.dest.name)+'</div><div class="row"><button class="btn go" id="cGo">عرض المسار</button><button class="btn alt" id="cFav">♡ حفظ</button><button class="btn ghost" id="cX">إلغاء</button></div>';
-$('cGo').onclick=requestRoute;$('cFav').onclick=function(){openAdd(S.dest.ll,S.dest.name)};$('cX').onclick=cancelDest}
-if(mode==='route'){c.innerHTML='<div class="t">'+esc(S.dest.name)+'</div><div class="tabs">'+tabHTML('car','بالسيارة')+tabHTML('foot','سيرًا')+'</div><div class="row"><button class="btn go" id="cGo">ابدأ التنقل</button><button class="btn alt" id="cFav">♡ حفظ</button><button class="btn ghost" id="cX">إلغاء</button></div>';
-c.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){S.mode=b.getAttribute('data-m');applyRoute(S.routes[S.mode],true);card('route')}});
-$('cGo').onclick=startNav;$('cFav').onclick=function(){openAdd(S.dest.ll,S.dest.name)};$('cX').onclick=cancelDest}
-if(mode==='nav'){c.innerHTML='<div class="t" id="nRem"></div><div class="s" id="nEta"></div><div class="row"><button class="btn red" id="cEnd" style="flex:1">إنهاء التنقل</button></div>';$('cEnd').onclick=function(){endNav(false)}}}
-
-/* ---------- navigation ---------- */
-function P(){return S.mode==='foot'?{rad:15,far:120,near:30,arr:20,off:40}:{rad:25,far:400,near:60,arr:30,off:70}}
-function startNav(){if(!S.route||!S.pos)return;S.nav=true;S.follow=true;document.body.classList.add('nav');$('banner').hidden=false;card('nav');
-speak('بدأ المسار '+(S.mode==='foot'?'سيرًا':'بالسيارة')+'. المسافة '+vd(S.route.distance));
-try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(function(w){S.wake=w}).catch(function(){})}catch(e){}
-map.setView(S.pos,17);navTick()}
-function endNav(arrived){S.nav=false;document.body.classList.remove('nav');$('banner').hidden=true;if(window.speechSynthesis&&!arrived)speechSynthesis.cancel();
-if(S.wake){try{S.wake.release()}catch(e){}S.wake=null}clearRoute();S.dest=null;S.alerted={};card(null)}
-function distToRoute(p){var m=1e9,k=111320,cl=Math.cos(p[0]*Math.PI/180),i,a,b,ax,ay,bx,by,dx,dy,l,t;
-for(i=0;i<S.coords.length-1;i++){a=S.coords[i];b=S.coords[i+1];ax=(a[1]-p[1])*k*cl;ay=(a[0]-p[0])*k;bx=(b[1]-p[1])*k*cl;by=(b[0]-p[0])*k;dx=bx-ax;dy=by-ay;l=dx*dx+dy*dy;
-t=l?Math.max(0,Math.min(1,-(ax*dx+ay*dy)/l)):0;m=Math.min(m,Math.hypot(ax+t*dx,ay+t*dy))}return m}
-function navTick(){if(!S.nav||!S.route)return;var pos=S.pos,q=P(),L1=S.steps.length-1,i;
-while(S.next<L1&&hav(pos,loc(S.next))<q.rad)S.next++;
-var st=S.steps[S.next],d=hav(pos,loc(S.next)),txt=instr(st);
-$('bArrow').textContent=arrow(st);$('bText').textContent=txt;$('bDist').textContent='بعد '+fd(d);
-if(S.next===L1&&d<q.arr){speak('وصلت إلى وجهتك');toast('وصلت إلى وجهتك');endNav(true);return}
-var key=S.next;
-if(d<=q.near&&!S.ann[key+'b']){S.ann[key+'a']=S.ann[key+'b']=1;speak(txt)}
-else if(d<=q.far&&!S.ann[key+'a']){S.ann[key+'a']=1;speak('بعد '+vd(d)+'، '+txt)}
-var rem=d;for(i=S.next;i<S.steps.length;i++)rem+=S.steps[i].distance;
-var sec=rem*(S.route.duration/Math.max(1,S.route.distance));
-if($('nRem')){$('nRem').textContent=fd(rem)+' · '+ft(sec);$('nEta').textContent='الوصول '+eta(sec)+' إلى '+S.dest.name}
-reps.forEach(function(r){if(!S.alerted[r.id]&&hav(pos,[r.lat,r.lng])<(S.mode==='foot'?80:300)){S.alerted[r.id]=1;speak('انتبه، '+RT[r.type][0]+' قدامك');toast('انتبه: '+RT[r.type][0]+' قدامك')}});
-if(S.follow)map.panTo(pos,{animate:true});
-if(distToRoute(pos)>q.off&&Date.now()-S.reroute>15000){S.reroute=Date.now();speak('جارٍ إعادة حساب المسار');
-getRoute(pos,S.dest.ll,S.mode).then(function(r){if(S.nav)applyRoute(r,false)}).catch(function(){})}}
-
-/* ---------- tap on map ---------- */
-map.on('click',function(e){var ll=[e.latlng.lat,e.latlng.lng],box=document.createElement('div');box.className='pop';
-box.innerHTML='<b>هذا المكان</b><br><button data-a="go">اذهب إلى هنا</button><button class="s" data-a="save">♡ حفظ</button>';
-box.querySelector('[data-a=go]').onclick=function(){map.closePopup();setDest(ll,'الوجهة المحددة')};
-box.querySelector('[data-a=save]').onclick=function(){map.closePopup();openAdd(ll,'')};
-L.popup().setLatLng(e.latlng).setContent(box).openOn(map)});
-
-/* ---------- search ---------- */
-$('q').addEventListener('input',function(){$('qx').hidden=!$('q').value});
-$('qx').onclick=function(){$('q').value='';$('qx').hidden=true;$('q').focus()};
-$('searchForm').addEventListener('submit',function(e){e.preventDefault();var q=$('q').value.trim();if(!q)return;$('q').blur();toast('جارٍ البحث…');
-fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=ar&q='+encodeURIComponent(q)).then(function(r){return r.json()}).then(function(res){
-if(!res.length){toast('لم يتم العثور على نتائج');return}var r=res[0];setDest([parseFloat(r.lat),parseFloat(r.lon)],r.display_name.split('،').slice(0,2).join('،'))})
-.catch(function(){toast('تعذّر البحث. تحقق من الاتصال بالإنترنت.')})});
-})();
-</script>
+<script src="app.js"></script>
 </body>
 </html>
