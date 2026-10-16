@@ -7,9 +7,9 @@
 --t-sheet:linear-gradient(180deg,#19134a,#0c0a2a);
 }
 
-/* ---------- الخريطة ---------- /
+/* ---------- الخريطة ---------- */
 .leaflet-container{background:#0d0b2a!important}
-.leaflet-tile-pane img[src="cartocdn"]{filter:sepia(.55) hue-rotate(215deg) saturate(1.9) brightness(1.15) contrast(1.05)}
+.leaflet-tile-pane img[src*="cartocdn"]{filter:sepia(.55) hue-rotate(215deg) saturate(1.9) brightness(1.15) contrast(1.05)}
 #map::before,#map::after{content:"";position:absolute;left:0;right:0;z-index:450;pointer-events:none}
 #map::before{top:0;height:170px;background:linear-gradient(180deg,rgba(10,8,34,.85),rgba(10,8,34,0))}
 #map::after{bottom:0;height:190px;background:linear-gradient(0deg,rgba(10,8,34,.85),rgba(10,8,34,0))}
