@@ -1,0 +1,111 @@
+/* theme.css - ثيم داكن بنفسجي بأسلوب الزجاج (يُحمَّل بعد ستايل الصفحة) */
+:root{
+--t-glass:rgba(26,20,70,.66);
+--t-stroke:rgba(255,255,255,.2);
+--t-tx2:rgba(255,255,255,.64);
+--t-grad:linear-gradient(135deg,#6d5df0,#a06bf5);
+--t-sheet:linear-gradient(180deg,#19134a,#0c0a2a);
+}
+
+/* ---------- الخريطة ---------- /
+.leaflet-container{background:#0d0b2a!important}
+.leaflet-tile-pane img[src="cartocdn"]{filter:sepia(.55) hue-rotate(215deg) saturate(1.9) brightness(1.15) contrast(1.05)}
+#map::before,#map::after{content:"";position:absolute;left:0;right:0;z-index:450;pointer-events:none}
+#map::before{top:0;height:170px;background:linear-gradient(180deg,rgba(10,8,34,.85),rgba(10,8,34,0))}
+#map::after{bottom:0;height:190px;background:linear-gradient(0deg,rgba(10,8,34,.85),rgba(10,8,34,0))}
+.leaflet-control-attribution{background:rgba(10,8,34,.6)!important;color:var(--t-tx2)!important}
+.leaflet-control-attribution a{color:#c9bfff!important}
+
+/* ---------- البحث والأزرار العلوية ---------- */
+form.search{background:var(--t-glass)!important;border:1px solid var(--t-stroke)!important;border-radius:16px!important;
+-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 8px 24px rgba(0,0,0,.35)!important}
+.search input{background:transparent!important;color:#fff!important}
+.search input::placeholder{color:var(--t-tx2)!important}
+.search svg,.search button svg{stroke:#c9bfff!important}
+.rb{background:var(--t-glass)!important;border:1px solid var(--t-stroke)!important;border-radius:16px!important;
+-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 8px 24px rgba(0,0,0,.35)!important}
+.rb svg{stroke:#d9d2ff!important}
+.chip{background:var(--t-glass)!important;color:#fff!important;border:1px solid var(--t-stroke)!important;border-radius:14px!important;
+-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.chip.on{background:var(--t-grad)!important;border-color:transparent!important}
+
+/* ---------- السرعة ولافتة التنقل والبطاقة ---------- */
+.speed{background:var(--t-glass)!important;border:2px solid #a78bfa!important;color:#fff!important;
+-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.speed b,.speed small{color:#fff!important}
+.banner{background:linear-gradient(135deg,#2a1f6b,#4b2fa8)!important;border:1px solid var(--t-stroke)!important;color:#fff!important}
+.banner *{color:#fff}
+.card{background:var(--t-glass)!important;color:#fff!important;border:1px solid var(--t-stroke)!important;border-radius:18px!important;
+-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 10px 30px rgba(0,0,0,.4)!important}
+.card .t,.card .s{color:#fff!important}
+.tab,.alt{background:rgba(255,255,255,.08)!important;color:#fff!important;border:1px solid var(--t-stroke)!important}
+.tab.on,.alt.on{background:rgba(124,108,245,.38)!important;border-color:#a78bfa!important}
+.tab span,.alt span{color:var(--t-tx2)!important}
+.warn{background:rgba(255,90,106,.15)!important;color:#ffc2c8!important}
+.toast{background:rgba(26,20,70,.94)!important;color:#fff!important;border:1px solid var(--t-stroke)!important;
+-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+
+/* ---------- الأزرار ---------- */
+.btn.go,.btn.gold{background:var(--t-grad)!important;color:#fff!important;border:0!important}
+.btn.alt2{background:rgba(255,255,255,.1)!important;color:#fff!important;border:1px solid var(--t-stroke)!important}
+.btn.ghost{background:transparent!important;color:#fff!important;border:1px solid var(--t-stroke)!important}
+.btn.red{background:#e0475a!important;color:#fff!important;border:0!important}
+
+/* ---------- الشريط السفلي ---------- */
+.dock{background:var(--t-glass)!important;border:1px solid var(--t-stroke)!important;border-radius:20px!important;
+-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 -6px 30px rgba(0,0,0,.4)!important}
+.dk{color:#d9d2ff!important}
+.dk svg{stroke:#d9d2ff!important}
+.dk.on,.dk.on svg{color:#fff!important;stroke:#b9a8ff!important}
+.dk.fab{background:var(--t-grad)!important;box-shadow:0 8px 26px rgba(124,108,245,.6)!important;border:0!important}
+.dk.fab svg{stroke:#fff!important}
+
+/* ---------- النوافذ السفلية ---------- */
+.bd{background:rgba(5,4,20,.62)!important}
+.sheet{background:var(--t-sheet)!important;color:#fff!important;border-top:1px solid var(--t-stroke)!important}
+.sh h2,.sheet h3{color:#fff!important}
+.sheet .x,.x{background:rgba(255,255,255,.12)!important;color:#fff!important}
+.item{border-top-color:rgba(255,255,255,.1)!important}
+.nm b{color:#fff!important}
+.nm small{color:var(--t-tx2)!important}
+.sm{background:rgba(124,108,245,.28)!important;color:#e5deff!important}
+.sm.del{background:rgba(255,90,106,.22)!important;color:#ffc2c8!important}
+.empty{color:var(--t-tx2)!important}
+.empty svg{stroke:rgba(255,255,255,.35)!important}
+.field{background:rgba(255,255,255,.07)!important;color:#fff!important;border-color:var(--t-stroke)!important}
+.field::placeholder{color:var(--t-tx2)!important}
+.fc button{background:rgba(255,255,255,.08)!important;color:#fff!important;border:1px solid var(--t-stroke)!important}
+.fc button.on{background:rgba(124,108,245,.4)!important;border-color:#a78bfa!important}
+.tile{background:rgba(255,255,255,.07)!important;color:#fff!important;border:1px solid var(--t-stroke)!important}
+.lc{background:rgba(255,255,255,.07)!important;color:#fff!important;border:1px solid var(--t-stroke)!important}
+.lc.on{border-color:#a78bfa!important;background:rgba(124,108,245,.22)!important}
+.lc small{color:var(--t-tx2)!important}
+.set label.r{border-top-color:rgba(255,255,255,.1)!important;color:#fff!important}
+.set select{background:#1b1446!important;color:#fff!important;border-color:var(--t-stroke)!important}
+.hint{background:rgba(255,200,60,.13)!important;color:#ffd77a!important}
+
+/* ---------- النوافذ المنبثقة على الخريطة ---------- */
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:rgba(26,20,70,.95)!important;color:#fff!important;border:1px solid var(--t-stroke)}
+.leaflet-popup-close-button{color:#fff!important}
+.pop small{color:var(--t-tx2)!important}
+.pop button{background:var(--t-grad)!important;color:#fff!important}
+.pop button.s{background:rgba(255,255,255,.16)!important}
+.pop button.r{background:#e0475a!important}
+.mk{background:#19134a!important}
+
+/* ---------- شاشة الطقس ---------- */
+body #wxp{background:linear-gradient(180deg,#140f3d,#0a0a22)!important;color:#fff!important}
+#wxp .wx-h{background:linear-gradient(135deg,#2a1f6b,#6d5df0)!important}
+#wxp .wx-now{background:linear-gradient(160deg,#6d5df0,#2a1f6b)!important}
+#wxp .wx-c{background:rgba(255,255,255,.07)!important;border:1px solid var(--t-stroke)!important;box-shadow:none!important}
+#wxp .wx-c h3{color:#b9a8ff!important}
+#wxp .wx-g div,#wxp .wx-hr div{background:rgba(255,255,255,.06)!important}
+#wxp .wx-g small,#wxp .wx-hr small,#wxp .wx-n,#wxp .wx-r small{color:var(--t-tx2)!important}
+#wxp .wx-dy{border-bottom-color:rgba(255,255,255,.1)!important}
+#wxp .wx-r{background:rgba(255,255,255,.08)!important;color:#fff!important}
+#wxp .wx-s input{background:rgba(255,255,255,.08)!important;color:#fff!important;border-color:var(--t-stroke)!important}
+#wxp .wx-s button{background:var(--t-grad)!important}
+#wxp .wx-b{background:var(--t-grad)!important}
+#wxp .wx-w{background:rgba(255,90,106,.15)!important;color:#ffd0d4!important;border-right-color:#ff5a6a!important}
+#wxToast{background:rgba(26,20,70,.94)!important;border:1px solid var(--t-stroke)}
+#wxRc{background:var(--t-grad)!important}
