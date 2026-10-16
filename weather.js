@@ -52,8 +52,6 @@
 
   /* ---------- CSS ---------- */
   var css = '' +
-    '#wxFab{position:fixed;right:12px;top:46%;z-index:1200;width:54px;height:54px;border-radius:50%;border:0;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.28);font-size:24px;line-height:1;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0}' +
-    '#wxFab small{font-size:9px;color:#14213D;font-weight:700;margin-top:1px}' +
     'body.nav #wxFab{display:none}' +
     '#wxRc{position:fixed;left:50%;transform:translateX(-50%);bottom:120px;z-index:1200;background:#14213D;color:#fff;border:0;border-radius:22px;padding:10px 18px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer}' +
     '#wxToast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;z-index:3100;background:#14213D;color:#fff;padding:10px 16px;border-radius:14px;max-width:86%;text-align:center;font-size:14px}' +
@@ -61,6 +59,8 @@
     '#wxp[hidden],#wxToast[hidden]{display:none}' +
     '.wx-h{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:14px;background:linear-gradient(135deg,#14213D,#13A3A8);color:#fff}' +
     '.wx-h b{flex:1;font-size:18px}' +
+    '.wx-h button svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}' +
+    '.wx-s input,.wx-s button,.wx-h button,.wx-b,#wxRc{font-family:inherit}' +
     '.wx-h button{border:0;background:rgba(255,255,255,.18);color:#fff;border-radius:12px;width:40px;height:40px;font-size:18px;cursor:pointer}' +
     '.wx-s{display:flex;gap:8px;padding:12px 14px 0}' +
     '.wx-s input{flex:1;border:1px solid #cfd8de;border-radius:12px;padding:11px 12px;font-size:15px;background:#fff;color:#14213D;min-width:0}' +
@@ -137,12 +137,12 @@
   /* ---------- render ---------- */
   function render(w, a, p, stamp) {
     var c = w.current, h = w.hourly, d = w.daily, cw = wc(c.weather_code, c.is_day), html = '', i;
-    html += '<div class="wx-now"><div class="wx-pl">📍 ' + esc(p.name) + '</div>' +
+    html += '<div class="wx-now"><div class="wx-pl">' + esc(p.name) + '</div>' +
       '<div class="wx-big"><span>' + cw.e + '</span><b>' + r0(c.temperature_2m) + '°</b></div>' +
       '<div class="wx-d">' + cw.t + ' · تبدو كأنها ' + r0(c.apparent_temperature) + '°</div>' +
-      '<div class="wx-d">⬆ ' + r0(d.temperature_2m_max[0]) + '°  ⬇ ' + r0(d.temperature_2m_min[0]) + '°</div></div>';
+      '<div class="wx-d">العظمى ' + r0(d.temperature_2m_max[0]) + '° · الصغرى ' + r0(d.temperature_2m_min[0]) + '°</div></div>';
 
-    warnings(w, a).forEach(function (m) { html += '<div class="wx-w">⚠️ ' + esc(m) + '</div>'; });
+    warnings(w, a).forEach(function (m) { html += '<div class="wx-w">' + esc(m) + '</div>'; });
 
     var aq = a && a.current ? a.current : null, al = aqiLabel(aq ? aq.us_aqi : null);
     html += '<div class="wx-c"><div class="wx-g">' +
@@ -161,7 +161,7 @@
     for (i = s; i < s + 24 && i < h.time.length; i++) {
       var hw = wc(h.weather_code[i], h.is_day[i]);
       html += '<div><small style="color:#6b7a88">' + (i === s ? 'الآن' : hl(h.time[i])) + '</small><i>' + hw.e + '</i><b>' + r0(h.temperature_2m[i]) + '°</b>' +
-        '<small>' + (h.precipitation_probability[i] ? '💧' + num(h.precipitation_probability[i]) + '٪' : '&nbsp;') + '</small></div>';
+        '<small>' + (h.precipitation_probability[i] ? num(h.precipitation_probability[i]) + '٪' : '&nbsp;') + '</small></div>';
     }
     html += '</div></div>';
 
@@ -169,18 +169,18 @@
     for (i = 0; i < d.time.length; i++) {
       var dw = wc(d.weather_code[i], 1);
       html += '<div class="wx-dy"><i>' + dw.e + '</i><span>' + esc(dayName(d.time[i], i)) + '</span>' +
-        '<small>' + (d.precipitation_sum[i] > 0.1 ? '💧' + num(d.precipitation_sum[i].toFixed(1)) + ' ملم' : '') + '</small>' +
-        '<b>' + r0(d.temperature_2m_max[i]) + '°</b><span style="flex:0;color:#6b7a88;font-weight:400">' + r0(d.temperature_2m_min[i]) + '°</span></div>';
+        '<small>' + (d.precipitation_sum[i] > 0.1 ? num(d.precipitation_sum[i].toFixed(1)) + ' ملم' : '') + '</small>' +
+        '<b>' + r0(d.temperature_2m_max[i]) + '°</b><span style="flex:0;color:#6b7a88;font-weight:400;margin-inline-start:6px">' + r0(d.temperature_2m_min[i]) + '°</span></div>';
     }
     html += '</div>';
 
-    html += '<button class="wx-b" id="wxRadar">🌧️ عرض رادار المطر على الخريطة</button>' +
+    html += '<button class="wx-b" id="wxRadar">عرض رادار المطر على الخريطة</button>' +
       '<div class="wx-n">' + (stamp || '') + '<br>المصدر: Open-Meteo و RainViewer</div>';
     body.innerHTML = html;
   }
 
   function load(force) {
-    if (!place) { body.innerHTML = '<div class="wx-c" style="text-align:center">اضغط 📍 لتحديد موقعك، أو ابحث عن مدينة.</div>'; return; }
+    if (!place) { body.innerHTML = '<div class="wx-c" style="text-align:center">اضغط زر الموقع بالأعلى لتحديد موقعك، أو ابحث عن مدينة.</div>'; return; }
     var cache = lj(KEY_CACHE, null), ck = place.lat.toFixed(2) + ',' + place.lng.toFixed(2);
     if (!force && cache && cache.key === ck && Date.now() - cache.time < 600000) {
       render(cache.w, cache.a, place, 'تم التحديث قبل قليل');
@@ -245,7 +245,7 @@
       if (place) m.setView([place.lat, place.lng], 7);
       closePanel();
       radarChip = document.createElement('button');
-      radarChip.id = 'wxRc'; radarChip.textContent = '✕ إخفاء رادار المطر';
+      radarChip.id = 'wxRc'; radarChip.textContent = 'إخفاء رادار المطر';
       radarChip.onclick = radarOff;
       document.body.appendChild(radarChip);
     }).catch(function () { toast('تعذّر تحميل الرادار الآن'); });
@@ -253,24 +253,27 @@
 
   /* ---------- panel ---------- */
   function openPanel() {
-    panel.hidden = false; fab.style.display = 'none';
+    panel.hidden = false;
     try { history.pushState({ wx: 1 }, ''); } catch (e) {}
     if (!place) useGPS(); else load(false);
   }
-  function closePanel() { panel.hidden = true; fab.style.display = ''; }
+  function closePanel() { panel.hidden = true; }
 
   function build() {
     fab = document.createElement('button');
-    fab.id = 'wxFab'; fab.innerHTML = '🌦️<small>الطقس</small>'; fab.setAttribute('aria-label', 'الطقس');
+    fab.id = 'wxFab'; fab.className = 'rb'; fab.setAttribute('aria-label', 'الطقس');
+    fab.innerHTML = '<svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>';
     fab.onclick = openPanel;
-    document.body.appendChild(fab);
+    var col = document.querySelector('.fabr');
+    if (col) col.appendChild(fab);
+    else { document.body.appendChild(fab); fab.style.cssText = 'position:fixed;right:12px;top:46%;z-index:1200'; }
 
     toastEl = document.createElement('div'); toastEl.id = 'wxToast'; toastEl.hidden = true;
     document.body.appendChild(toastEl);
 
     panel = document.createElement('div'); panel.id = 'wxp'; panel.hidden = true;
     panel.innerHTML =
-      '<div class="wx-h"><button id="wxX" aria-label="إغلاق">✕</button><b>🌦️ الطقس والحالة الجوية</b><button id="wxLoc" aria-label="موقعي">📍</button><button id="wxRf" aria-label="تحديث">⟳</button></div>' +
+      '<div class="wx-h"><button id="wxX" aria-label="إغلاق"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><b>الطقس والحالة الجوية</b><button id="wxLoc" aria-label="موقعي"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button><button id="wxRf" aria-label="تحديث"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button></div>' +
       '<form class="wx-s" id="wxForm"><input id="wxQ" type="search" placeholder="ابحث عن مدينة…"><button type="submit">بحث</button></form>' +
       '<div id="wxRes"></div><div id="wxBody"></div>';
     document.body.appendChild(panel);
